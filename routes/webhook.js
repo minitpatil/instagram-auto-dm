@@ -6,10 +6,12 @@ const INSTAGRAM_ACCESS_TOKEN = process.env.INSTAGRAM_ACCESS_TOKEN;
 
 
 // ======================================================
-// IMPORTANT:
-// फक्त या Media/Reel/Post IDs वर automation चालेल.
-// नवीन Reel add करायची असेल तर इथे एक नवीन entry add कर.
+// REEL / POST CONFIGURATION
 // ======================================================
+//
+// फक्त या Media/Reel/Post IDs वर automation चालेल.
+// नवीन Reel add करायची असेल तर नवीन entry add करा.
+//
 
 const REEL_CONFIGS = {
 
@@ -18,11 +20,16 @@ const REEL_CONFIGS = {
   // ====================================================
 
   "17902878315462428": {
+
     publicReply:
       "Thanks for your comment! 🙌 Please check your DM.",
 
     dmMessage:
-      "Transform my car photo into a cinematic night highway scene during heavy rain. Show the car driving at high speed with headlights on, wet-road reflections, glowing streetlights, water splashes and realistic motion blur. Keep the original car design, colour and number plate unchanged. Ultra-realistic, cinematic, 8K."
+      "Transform my car photo into a cinematic night highway scene during heavy rain. Show the car driving at high speed with headlights on, wet-road reflections, glowing streetlights, water splashes and realistic motion blur. Keep the original car design, colour and number plate unchanged. Ultra-realistic, cinematic, 8K.",
+
+    // DM fail झाल्यावर follow करायला सांगणारा comment
+    followRequiredReply:
+      "Please follow us first, then check your DM. 🙏"
   },
 
 
@@ -31,11 +38,15 @@ const REEL_CONFIGS = {
   // ====================================================
 
   "18098290736611122": {
+
     publicReply:
       "Thanks for your comment! 🔥 Please check your DM.",
 
     dmMessage:
-      "Transform this car photo into a realistic cinematic monsoon scene in the Western Ghats of Maharashtra. Use only the original car, preserving its model, color, wheels, number plate, proportions, and all original details. Replace everything else with a lush Western Ghats landscape. Create a vertical stacked collage with three realistic views of the same car: Front 3/4, Side Profile, and Rear 3/4, arranged one below another in a single image. Keep the same background style and weather across all three frames. Show the car in motion on a wet Indian mountain road with correct left-side driving, matching steering angle and road curve. Add wheel motion blur, subtle tire water spray, headlights/taillights on, light monsoon rain, wet-road reflections, soft fog, overcast daylight, cinematic HDR, DSLR depth of field, ultra-realistic textures, and 8K quality."
+      "Transform this car photo into a realistic cinematic monsoon scene in the Western Ghats of Maharashtra. Use only the original car, preserving its model, color, wheels, number plate, proportions, and all original details. Replace everything else with a lush Western Ghats landscape. Create a vertical stacked collage with three realistic views of the same car: Front 3/4, Side Profile, and Rear 3/4, arranged one below another in a single image. Keep the same background style and weather across all three frames. Show the car in motion on a wet Indian mountain road with correct left-side driving, matching steering angle and road curve. Add wheel motion blur, subtle tire water spray, headlights/taillights on, light monsoon rain, wet-road reflections, soft fog, overcast daylight, cinematic HDR, DSLR depth of field, ultra-realistic textures, and 8K quality.",
+
+    followRequiredReply:
+      "Please follow us first, then check your DM. 🙏"
   },
 
 
@@ -44,11 +55,15 @@ const REEL_CONFIGS = {
   // ====================================================
 
   "YOUR_REEL_ID_3": {
+
     publicReply:
       "Thanks for your comment! 🚗 Please check your DM.",
 
     dmMessage:
-      "YOUR THIRD REEL PROMPT HERE"
+      "YOUR THIRD REEL PROMPT HERE",
+
+    followRequiredReply:
+      "Please follow us first, then check your DM. 🙏"
   },
 
 
@@ -57,11 +72,15 @@ const REEL_CONFIGS = {
   // ====================================================
 
   "YOUR_REEL_ID_4": {
+
     publicReply:
       "Thanks for your comment! ❤️ Please check your DM.",
 
     dmMessage:
-      "YOUR FOURTH REEL PROMPT HERE"
+      "YOUR FOURTH REEL PROMPT HERE",
+
+    followRequiredReply:
+      "Please follow us first, then check your DM. 🙏"
   }
 
 };
@@ -74,7 +93,7 @@ const REEL_CONFIGS = {
 // Currently processing comments
 const processingComments = new Set();
 
-// Successfully processed comments
+// Successfully completed comments
 const processedComments = new Set();
 
 // Public replies already sent
@@ -82,6 +101,9 @@ const publicRepliesSent = new Set();
 
 // Private DMs already sent
 const privateDMsSent = new Set();
+
+// Follow-required replies already sent
+const followRequiredRepliesSent = new Set();
 
 
 // ======================================================
@@ -103,6 +125,7 @@ async function sendPublicReply(commentId, message) {
       `https://graph.instagram.com/${API_VERSION}/${commentId}/replies`;
 
     const response = await fetch(url, {
+
       method: "POST",
 
       headers: {
@@ -114,6 +137,7 @@ async function sendPublicReply(commentId, message) {
       body: JSON.stringify({
         message: message
       })
+
     });
 
     const result = await response.json();
@@ -122,6 +146,7 @@ async function sendPublicReply(commentId, message) {
 
       console.error("");
       console.error("❌ PUBLIC REPLY FAILED");
+
       console.error(
         JSON.stringify(result, null, 2)
       );
@@ -131,6 +156,7 @@ async function sendPublicReply(commentId, message) {
 
     console.log("");
     console.log("✅ PUBLIC REPLY SENT");
+
     console.log(
       JSON.stringify(result, null, 2)
     );
@@ -149,12 +175,11 @@ async function sendPublicReply(commentId, message) {
 
 
 // ======================================================
-// SEND PRIVATE DM / PRIVATE REPLY
+// SEND PRIVATE DM
 // ======================================================
 //
-// IMPORTANT:
-//
 // Meta Private Reply API:
+//
 // POST
 // /{INSTAGRAM_USER_ID}/messages
 //
@@ -163,8 +188,9 @@ async function sendPublicReply(commentId, message) {
 //   comment_id: COMMENT_ID
 // }
 //
-// म्हणजे COMMENTER ID URL मध्ये देऊ नये.
-// ======================================================
+// IMPORTANT:
+// Commenter ID URL मध्ये देऊ नये.
+//
 
 async function sendPrivateDM(
   instagramUserId,
@@ -215,20 +241,75 @@ async function sendPrivateDM(
 
       console.error("");
       console.error("❌ PRIVATE DM FAILED");
+
       console.error(
         JSON.stringify(result, null, 2)
       );
 
-      return false;
+
+      // ==================================================
+      // CHECK FOLLOW REQUIRED ERROR
+      // ==================================================
+
+      const errorMessage =
+        result?.error?.message?.toLowerCase() || "";
+
+      const errorType =
+        result?.error?.type?.toLowerCase() || "";
+
+      const errorCode =
+        result?.error?.code;
+
+      const errorSubcode =
+        result?.error?.error_subcode;
+
+
+      const followRequired =
+        errorMessage.includes("follow you") ||
+        errorMessage.includes("follow this profile") ||
+        errorMessage.includes("unless they follow") ||
+        errorMessage.includes("can't message this profile") ||
+        errorMessage.includes("cannot message this profile") ||
+        errorMessage.includes("follow") &&
+        errorMessage.includes("message");
+
+
+      if (followRequired) {
+
+        console.log("");
+        console.log(
+          "⚠️ DM BLOCKED: USER MUST FOLLOW FIRST"
+        );
+
+        console.log("Error Code:", errorCode);
+        console.log("Error Subcode:", errorSubcode);
+        console.log("Error Type:", errorType);
+
+      }
+
+
+      return {
+        success: false,
+        followRequired: followRequired,
+        error: result
+      };
     }
+
 
     console.log("");
     console.log("✅ PRIVATE DM SENT");
+
     console.log(
       JSON.stringify(result, null, 2)
     );
 
-    return true;
+
+    return {
+      success: true,
+      followRequired: false,
+      result: result
+    };
+
 
   } catch (error) {
 
@@ -236,7 +317,11 @@ async function sendPrivateDM(
     console.error("❌ PRIVATE DM ERROR");
     console.error(error);
 
-    return false;
+    return {
+      success: false,
+      followRequired: false,
+      error: error
+    };
   }
 }
 
@@ -293,13 +378,7 @@ router.post("/", async (req, res) => {
 
     for (const entry of body.entry || []) {
 
-
-      // ------------------------------------------------
-      // IMPORTANT:
-      // entry.id = आपल्या Instagram Professional
-      // Account चा ID
-      // ------------------------------------------------
-
+      // आपल्या Instagram Professional Account चा ID
       const instagramUserId = entry.id;
 
 
@@ -311,7 +390,7 @@ router.post("/", async (req, res) => {
 
 
         // ------------------------------------------------
-        // फक्त comments event process करायचा
+        // फक्त comments event process करा
         // ------------------------------------------------
 
         if (change.field !== "comments") {
@@ -401,13 +480,6 @@ router.post("/", async (req, res) => {
         // =================================================
         // OWN COMMENT IGNORE
         // =================================================
-        //
-        // आपल्या Instagram account कडून comment आला
-        // तर automation चालू करू नये.
-        //
-        // entry.id = आपल्या IG account ID
-        //
-        // =================================================
 
         if (
           commenterId &&
@@ -433,8 +505,7 @@ router.post("/", async (req, res) => {
 
 
         // =================================================
-        // जर Reel/Post configured नसेल
-        // तर काहीही करू नका.
+        // NOT CONFIGURED
         // =================================================
 
         if (!config) {
@@ -564,6 +635,7 @@ router.post("/", async (req, res) => {
         // =================================================
 
         let privateDMSuccess = false;
+        let followRequired = false;
 
 
         if (
@@ -572,12 +644,19 @@ router.post("/", async (req, res) => {
           )
         ) {
 
-          privateDMSuccess =
+          const dmResult =
             await sendPrivateDM(
               instagramUserId,
               commentId,
               config.dmMessage
             );
+
+
+          privateDMSuccess =
+            dmResult.success;
+
+          followRequired =
+            dmResult.followRequired;
 
 
           if (privateDMSuccess) {
@@ -599,6 +678,60 @@ router.post("/", async (req, res) => {
 
 
         // =================================================
+        // FOLLOW REQUIRED FALLBACK
+        // =================================================
+        //
+        // DM fail झाला आणि Meta ने follow-required
+        // condition दिली तर public comment पाठवा.
+        //
+
+        let followReplySuccess = false;
+
+
+        if (
+          !privateDMSuccess &&
+          followRequired
+        ) {
+
+          if (
+            !followRequiredRepliesSent.has(
+              String(commentId)
+            )
+          ) {
+
+            console.log("");
+            console.log(
+              "📢 USER MUST FOLLOW FIRST"
+            );
+
+            followReplySuccess =
+              await sendPublicReply(
+                commentId,
+                config.followRequiredReply
+              );
+
+
+            if (followReplySuccess) {
+
+              followRequiredRepliesSent.add(
+                String(commentId)
+              );
+
+            }
+
+          } else {
+
+            console.log(
+              "⏭️ FOLLOW REQUIRED REPLY ALREADY SENT"
+            );
+
+            followReplySuccess = true;
+          }
+
+        }
+
+
+        // =================================================
         // FINAL RESULT
         // =================================================
 
@@ -615,12 +748,14 @@ router.post("/", async (req, res) => {
           "=========================================="
         );
 
+
         console.log(
           "Public Reply:",
           publicReplySuccess
             ? "✅ SENT"
             : "❌ FAILED"
         );
+
 
         console.log(
           "Private DM:",
@@ -629,20 +764,34 @@ router.post("/", async (req, res) => {
             : "❌ FAILED"
         );
 
+
+        console.log(
+          "Follow Required Reply:",
+          followReplySuccess
+            ? "✅ SENT"
+            : followRequired
+              ? "❌ FAILED"
+              : "⏭️ NOT REQUIRED"
+        );
+
+
         console.log(
           "Media ID:",
           mediaId
         );
+
 
         console.log(
           "Comment ID:",
           commentId
         );
 
+
         console.log(
           "Username:",
           username
         );
+
 
         console.log(
           "=========================================="
@@ -652,16 +801,31 @@ router.post("/", async (req, res) => {
         // =================================================
         // MARK COMPLETE
         // =================================================
+        //
+        // Normal case:
+        // Public Reply + DM successful
+        //
+        // Follow-required case:
+        // Public Reply + Follow Required Reply successful
+        //
+        // दोन्हीपैकी योग्य flow complete झाला की
+        // comment पुन्हा process करू नये.
+        //
 
-        //
-        // दोन्ही successfully झाले तरच comment
-        // processed म्हणून mark कर.
-        //
-        // =================================================
+        const normalFlowComplete =
+          publicReplySuccess &&
+          privateDMSuccess;
+
+
+        const followFlowComplete =
+          publicReplySuccess &&
+          followRequired &&
+          followReplySuccess;
+
 
         if (
-          publicReplySuccess &&
-          privateDMSuccess
+          normalFlowComplete ||
+          followFlowComplete
         ) {
 
           processedComments.add(
@@ -702,6 +866,7 @@ router.post("/", async (req, res) => {
 // ======================================================
 
 console.log("");
+
 console.log(
   "🔐 TOKEN LOADED:",
   !!INSTAGRAM_ACCESS_TOKEN
