@@ -1,0 +1,59 @@
+CINEMATIC CGI RALLY Prompt
+
+Transform the uploaded vehicle into an ultra-realistic cinematic CGI rally action poster. Use the uploaded image ONLY as a vehicle identity reference, never as a composition, pose, lighting, or camera-angle reference.
+
+VEHICLE IDENTITY (Highest Priority)
+Detect the vehicle from any angle and recreate the EXACT SAME vehicle. Preserve the body shape, proportions, paint, grille, headlights, taillights, fog lamps, mirrors, windows, roofline, door handles, original wheel design, tyres, badges, logo, license plate, stickers, accessories, and every unique identifying detail. Never redesign the vehicle.
+
+OEM+ RALLY BUILD
+Raised suspension (+10–15%), slightly wider deep-tread rally tyres, original wheels, black mud flaps, small red tow hooks, light skid plate. Smart spoiler: Sedan → OEM ducktail, Hatchback → subtle factory roof spoiler extension, SUV/Crossover → subtle OEM roof spoiler only. Never add GT wings, widebody kits, or unrealistic aero.
+
+RALLY BRANDING
+Extract the LAST TWO digits from the original license plate and use them as the official rally number on FIA/WRC-style number panels placed on the front doors, bonnet, and roof. Add a subtle mud-textured "DIRT RALLY" logo on the bonnet and doors only.
+
+SCENE
+Purpose-built off-road rally drift course with a vast muddy drift arena, open grassland, rocky terrain, puddles, scattered eucalyptus trees, distant rolling green mountains, and no villages, rivers, bridges, houses, or people.
+
+WEATHER
+Heavy monsoon storm clouds, very light drizzle, soft mist, wet reflections, subtle rain streaks, and occasional sunlight through cloud gaps.
+
+LAYOUT
+Premium vertical 9:16 collector poster. Top panel 65%, bottom panel 35%, separated by a diagonal mud-textured divider with a subtle "DIRT RALLY" title.
+
+TOP PANEL
+35mm low-angle tracking shot with a subtle 3–5° Dutch tilt. Always use a front three-quarter or side three-quarter angle. Vehicle occupies 35–40% of the frame.
+
+Freeze the vehicle at the DRIFT APEX.
+
+Realistic rally physics: natural counter-steering, correct steering and drift angle, suspension compression, weight transfer, slight body roll, tyre deformation, subtle wheel rotation.
+
+Dynamic mud physics:
+• Entry → light mud
+• Apex → maximum mud spray from the OUTER rear tyre
+• Exit → gradually decreasing mud
+
+Mud follows vehicle momentum and naturally accumulates on the lower body, wheel arches, side skirts, bumpers, lower bonnet, rear quarter panels, and lightly on the windshield.
+
+Motion blur only on wheels, mud particles, and background. Keep the vehicle body perfectly sharp.
+
+BOTTOM PANEL
+45° aerial drone tracking shot (no fisheye or ultra-wide distortion). Vehicle occupies ~30% of the panel.
+
+Show ONE continuous drift donut. Keep the vehicle ON the drift path, never at the center. Freeze the DRIFT APEX with continuous tyre marks before and after the vehicle, older faded practice marks, deep muddy grooves, puddles, and terrain deformation. Mud originates ONLY from the OUTER rear tyre following the vehicle's momentum. Never create radial mud explosions.
+
+RENDER STYLE
+Ultra-realistic CGI, Unreal Engine 5, Hollywood Movie Quality, AAA Rally Game Quality, Physically Based Rendering (PBR), Ray Tracing, Global Illumination, Real Mud Physics, Natural Tyre Deformation, IMAX HDR Color Grading, Volumetric Lighting, Atmospheric Perspective.
+
+OUTPUT
+8K HDR • IMAX Quality • Professional CGI • Movie Poster Quality • Sharp Focus • Vertical 9:16 • No Watermark • No Borders • No UI.
+
+
+--------------------------------------------------
+🚀 SWATPAT INSTAGRAM AUTO DM
+
+Automatic prompt delivery powered by
+SwatPat Solutions
+@swatpat.solutions
+
+Created by @miswatpatil
+--------------------------------------------------

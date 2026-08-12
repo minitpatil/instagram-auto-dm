@@ -9,14 +9,21 @@ const INSTAGRAM_ACCESS_TOKEN = process.env.INSTAGRAM_ACCESS_TOKEN;
 // REEL / POST CONFIGURATION
 // ======================================================
 //
-// फक्त या Media/Reel/Post IDs वर automation चालेल.
-// नवीन Reel add करायची असेल तर नवीन entry add करा.
+// sendFile: false
+// -> Personal DM only
 //
+// sendFile: true
+// -> Personal DM + TXT file link
+//
+// fileKey:
+// -> server.js मधील allowed TXT file key
+// ======================================================
 
 const REEL_CONFIGS = {
 
   // ====================================================
   // REEL / POST #1
+  // PERSONAL DM ONLY
   // ====================================================
 
   "17902878315462428": {
@@ -27,14 +34,13 @@ const REEL_CONFIGS = {
     dmMessage:
       "Transform my car photo into a cinematic night highway scene during heavy rain. Show the car driving at high speed with headlights on, wet-road reflections, glowing streetlights, water splashes and realistic motion blur. Keep the original car design, colour and number plate unchanged. Ultra-realistic, cinematic, 8K.",
 
-    // DM fail झाल्यावर follow करायला सांगणारा comment
-    followRequiredReply:
-      "Please follow us first, then check your DM. 🙏"
+    sendFile: false
   },
 
 
   // ====================================================
   // REEL / POST #2
+  // PERSONAL DM ONLY
   // ====================================================
 
   "18098290736611122": {
@@ -45,42 +51,65 @@ const REEL_CONFIGS = {
     dmMessage:
       "Transform this car photo into a realistic cinematic monsoon scene in the Western Ghats of Maharashtra. Use only the original car, preserving its model, color, wheels, number plate, proportions, and all original details. Replace everything else with a lush Western Ghats landscape. Create a vertical stacked collage with three realistic views of the same car: Front 3/4, Side Profile, and Rear 3/4, arranged one below another in a single image. Keep the same background style and weather across all three frames. Show the car in motion on a wet Indian mountain road with correct left-side driving, matching steering angle and road curve. Add wheel motion blur, subtle tire water spray, headlights/taillights on, light monsoon rain, wet-road reflections, soft fog, overcast daylight, cinematic HDR, DSLR depth of field, ultra-realistic textures, and 8K quality.",
 
-    followRequiredReply:
-      "Please follow us first, then check your DM. 🙏"
+    sendFile: false
   },
 
 
   // ====================================================
   // REEL / POST #3
+  // PERSONAL DM + TXT FILE
   // ====================================================
 
-  "YOUR_REEL_ID_3": {
+  "18171066685434777": {
 
     publicReply:
       "Thanks for your comment! 🚗 Please check your DM.",
 
     dmMessage:
-      "YOUR THIRD REEL PROMPT HERE",
+  "Thanks for commenting! 👇 Here is your requested prompt:\n\n" +
+  "🚀 Automatic prompt delivery powered by SwatPat Solutions\n" +
+  "Instagram: @swatpat.solutions",
 
-    followRequiredReply:
-      "Please follow us first, then check your DM. 🙏"
+    sendFile: true,
+
+    fileKey: "Independance_day_prompts"
   },
 
 
   // ====================================================
   // REEL / POST #4
+  // PERSONAL DM + TXT FILE
   // ====================================================
 
-  "YOUR_REEL_ID_4": {
+  "18103988321332247": {
 
     publicReply:
       "Thanks for your comment! ❤️ Please check your DM.",
 
     dmMessage:
-      "YOUR FOURTH REEL PROMPT HERE",
+  "Thanks for commenting! 👇 Here is your requested prompt:\n\n" +
+  "🚀 Automatic prompt delivery powered by SwatPat Solutions\n" +
+  "Instagram: @swatpat.solutions",
 
-    followRequiredReply:
-      "Please follow us first, then check your DM. 🙏"
+    sendFile: true,
+
+    fileKey: "cgi_rally_prompt"
+  },
+
+  // ====================================================
+  // REEL / POST #5
+  // PERSONAL DM ONLY
+  // ====================================================
+
+  "18028541873836066": {
+
+    publicReply:
+      "Thanks for your comment! 🔥 Please check your DM.",
+
+    dmMessage:
+      "Create a premium cinematic devotional double-exposure artwork from my uploaded photo.Preserve only identity(face,body proportions,height,pose,perspective,lighting,vehicle);transform only the environment.Replace modern clothes with devotional attire(men:white kurta-pyjama+saffron/cream stole;women:authentic Maharashtrian Nauvari(Kashta),9-yard Warkari drape,front tuck,traditional jewellery,bindi,tied hair,never a 6-yard saree or modern drape).Keep traditional attire unchanged.Use a 15–20ft elevated wide-angle 9:16 composition with seamless integration,matched perspective,shadows,grading and depth.Create an authentic cloud-sculpted Lord Pandurang(Vitthal,hands-on-hips) above the real Chandrabhaga River,Shri Vitthal-Rukmini Temple,ghats,Warkaris,saffron flags and mist.Unique Pandharpur every time.Subtle Vitthal vehicle graphics only.Luxury travel-poster,photorealistic,volumetric lighting.Bottom-center Marathi calligraphy:“जय हरी विठ्ठल”.8K,no watermark.",
+
+    sendFile: false
   }
 
 };
@@ -90,20 +119,34 @@ const REEL_CONFIGS = {
 // DUPLICATE PROTECTION
 // ======================================================
 
-// Currently processing comments
 const processingComments = new Set();
 
-// Successfully completed comments
 const processedComments = new Set();
 
-// Public replies already sent
 const publicRepliesSent = new Set();
 
-// Private DMs already sent
 const privateDMsSent = new Set();
 
-// Follow-required replies already sent
 const followRequiredRepliesSent = new Set();
+
+
+// ======================================================
+// CREATE TXT FILE URL
+// ======================================================
+
+function getFileUrl(req, fileKey) {
+
+  const publicBaseUrl =
+    process.env.PUBLIC_BASE_URL;
+
+  if (publicBaseUrl) {
+
+    return `${publicBaseUrl.replace(/\/$/, "")}/file/${fileKey}`;
+
+  }
+
+  return `${req.protocol}://${req.get("host")}/file/${fileKey}`;
+}
 
 
 // ======================================================
@@ -177,20 +220,6 @@ async function sendPublicReply(commentId, message) {
 // ======================================================
 // SEND PRIVATE DM
 // ======================================================
-//
-// Meta Private Reply API:
-//
-// POST
-// /{INSTAGRAM_USER_ID}/messages
-//
-// recipient:
-// {
-//   comment_id: COMMENT_ID
-// }
-//
-// IMPORTANT:
-// Commenter ID URL मध्ये देऊ नये.
-//
 
 async function sendPrivateDM(
   instagramUserId,
@@ -270,8 +299,10 @@ async function sendPrivateDM(
         errorMessage.includes("unless they follow") ||
         errorMessage.includes("can't message this profile") ||
         errorMessage.includes("cannot message this profile") ||
-        errorMessage.includes("follow") &&
-        errorMessage.includes("message");
+        (
+          errorMessage.includes("follow") &&
+          errorMessage.includes("message")
+        );
 
 
       if (followRequired) {
@@ -281,10 +312,20 @@ async function sendPrivateDM(
           "⚠️ DM BLOCKED: USER MUST FOLLOW FIRST"
         );
 
-        console.log("Error Code:", errorCode);
-        console.log("Error Subcode:", errorSubcode);
-        console.log("Error Type:", errorType);
+        console.log(
+          "Error Code:",
+          errorCode
+        );
 
+        console.log(
+          "Error Subcode:",
+          errorSubcode
+        );
+
+        console.log(
+          "Error Type:",
+          errorType
+        );
       }
 
 
@@ -378,7 +419,6 @@ router.post("/", async (req, res) => {
 
     for (const entry of body.entry || []) {
 
-      // आपल्या Instagram Professional Account चा ID
       const instagramUserId = entry.id;
 
 
@@ -387,11 +427,6 @@ router.post("/", async (req, res) => {
       // =================================================
 
       for (const change of entry.changes || []) {
-
-
-        // ------------------------------------------------
-        // फक्त comments event process करा
-        // ------------------------------------------------
 
         if (change.field !== "comments") {
 
@@ -631,6 +666,62 @@ router.post("/", async (req, res) => {
 
 
         // =================================================
+        // BUILD PERSONAL DM
+        // =================================================
+
+        let finalDMMessage =
+          config.dmMessage;
+
+
+        // =================================================
+        // ADD TXT FILE LINK ONLY WHEN:
+        //
+        // sendFile === true
+        // AND
+        // fileKey exists
+        // =================================================
+
+        if (
+          config.sendFile === true &&
+          config.fileKey
+        ) {
+
+          const fileUrl =
+            getFileUrl(
+              req,
+              config.fileKey
+            );
+
+
+          finalDMMessage =
+            `${config.dmMessage}\n\n${fileUrl}`;
+
+
+          console.log("");
+          console.log(
+            "📄 TXT FILE ENABLED"
+          );
+
+          console.log(
+            "File Key:",
+            config.fileKey
+          );
+
+          console.log(
+            "File URL:",
+            fileUrl
+          );
+
+        } else {
+
+          console.log("");
+          console.log(
+            "📄 TXT FILE: NOT REQUIRED FOR THIS REEL"
+          );
+        }
+
+
+        // =================================================
         // PRIVATE DM
         // =================================================
 
@@ -648,7 +739,7 @@ router.post("/", async (req, res) => {
             await sendPrivateDM(
               instagramUserId,
               commentId,
-              config.dmMessage
+              finalDMMessage
             );
 
 
@@ -680,10 +771,6 @@ router.post("/", async (req, res) => {
         // =================================================
         // FOLLOW REQUIRED FALLBACK
         // =================================================
-        //
-        // DM fail झाला आणि Meta ने follow-required
-        // condition दिली तर public comment पाठवा.
-        //
 
         let followReplySuccess = false;
 
@@ -704,10 +791,16 @@ router.post("/", async (req, res) => {
               "📢 USER MUST FOLLOW FIRST"
             );
 
+
+            const followReply =
+              config.followRequiredReply ||
+              "Please follow us first, then check your DM. 🙏";
+
+
             followReplySuccess =
               await sendPublicReply(
                 commentId,
-                config.followRequiredReply
+                followReply
               );
 
 
@@ -766,6 +859,14 @@ router.post("/", async (req, res) => {
 
 
         console.log(
+          "TXT File:",
+          config.sendFile === true
+            ? `✅ ${config.fileKey}`
+            : "⏭️ NOT REQUIRED"
+        );
+
+
+        console.log(
           "Follow Required Reply:",
           followReplySuccess
             ? "✅ SENT"
@@ -801,16 +902,6 @@ router.post("/", async (req, res) => {
         // =================================================
         // MARK COMPLETE
         // =================================================
-        //
-        // Normal case:
-        // Public Reply + DM successful
-        //
-        // Follow-required case:
-        // Public Reply + Follow Required Reply successful
-        //
-        // दोन्हीपैकी योग्य flow complete झाला की
-        // comment पुन्हा process करू नये.
-        //
 
         const normalFlowComplete =
           publicReplySuccess &&
