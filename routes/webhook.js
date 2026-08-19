@@ -110,7 +110,24 @@ const REEL_CONFIGS = {
       "Create a premium cinematic devotional double-exposure artwork from my uploaded photo.Preserve only identity(face,body proportions,height,pose,perspective,lighting,vehicle);transform only the environment.Replace modern clothes with devotional attire(men:white kurta-pyjama+saffron/cream stole;women:authentic Maharashtrian Nauvari(Kashta),9-yard Warkari drape,front tuck,traditional jewellery,bindi,tied hair,never a 6-yard saree or modern drape).Keep traditional attire unchanged.Use a 15–20ft elevated wide-angle 9:16 composition with seamless integration,matched perspective,shadows,grading and depth.Create an authentic cloud-sculpted Lord Pandurang(Vitthal,hands-on-hips) above the real Chandrabhaga River,Shri Vitthal-Rukmini Temple,ghats,Warkaris,saffron flags and mist.Unique Pandharpur every time.Subtle Vitthal vehicle graphics only.Luxury travel-poster,photorealistic,volumetric lighting.Bottom-center Marathi calligraphy:“जय हरी विठ्ठल”.8K,no watermark.",
 
     sendFile: false
-  }
+  },
+
+  // ====================================================
+  // REEL / POST #6
+  // PERSONAL DM ONLY
+  // ====================================================
+
+  "17943271003422784": {
+
+    publicReply:
+      "Thanks for your comment! 🙌 Please check your DM.",
+
+    dmMessage:
+      "Test",
+
+    sendFile: false
+  },
+
 
 };
 
