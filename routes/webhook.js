@@ -127,7 +127,21 @@ const REEL_CONFIGS = {
 
     sendFile: false
   },
+  // ====================================================
+  // REEL / POST #7
+  // PERSONAL DM ONLY
+  // ====================================================
 
+  "18613567168034674": {
+
+    publicReply:
+      "Thanks for your comment! 🙌 Please check your DM.",
+
+    dmMessage:
+      "Transform the uploaded car into an ultra-realistic 3D cinematic street-drift scene at night. Remove all background object. Keep the car’s exact identity, model, body shape and details unchanged. Car i always on center of image with front and side angle.Add a huge crowd filming with phones, thick tire smoke, wet reflective road, streetlights, storefronts, flying debris and dramatic headlights. Aggressive drift/donut action, low-angle automotive photography, realistic motion and depth. Random sporty modified-car color: Electric blue, Neon Green, Purple or Golden.  Neon lights on bottom same color as car. Glass tilted 80%. Add large spoiler if Sedan or hatchback. Photorealistic, high-detail, cinematic.strictly 9:16 Vertical image.",
+
+    sendFile: false
+  }
 
 };
 
