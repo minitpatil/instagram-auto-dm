@@ -95,7 +95,6 @@ const REEL_CONFIGS = {
 
     fileKey: "cgi_rally_prompt"
   },
-
   // ====================================================
   // REEL / POST #5
   // PERSONAL DM ONLY
@@ -141,10 +140,26 @@ const REEL_CONFIGS = {
       "Transform the uploaded car into an ultra-realistic 3D cinematic street-drift scene at night. Remove all background object. Keep the car’s exact identity, model, body shape and details unchanged. Car i always on center of image with front and side angle.Add a huge crowd filming with phones, thick tire smoke, wet reflective road, streetlights, storefronts, flying debris and dramatic headlights. Aggressive drift/donut action, low-angle automotive photography, realistic motion and depth. Random sporty modified-car color: Electric blue, Neon Green, Purple or Golden.  Neon lights on bottom same color as car. Glass tilted 80%. Add large spoiler if Sedan or hatchback. Photorealistic, high-detail, cinematic.strictly 9:16 Vertical image.",
 
     sendFile: false
-  }
+  },  
+  // ====================================================
+  // REEL / POST #8
+  // PERSONAL DM + TXT FILE
+  // ====================================================
+  "18222172366328380": {
 
+    publicReply:
+      "Thanks for your comment! ❤️ Please check your DM.",
+
+    dmMessage:
+  "Thanks for commenting! 👇 Here is your requested prompt:\n\n" +
+  "🚀 Automatic prompt delivery powered by SwatPat Solutions\n" +
+  "Instagram: @swatpat.solutions",
+
+    sendFile: true,
+
+    fileKey: "racing_poster"
+  },
 };
-
 
 // ======================================================
 // DUPLICATE PROTECTION

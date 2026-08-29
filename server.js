@@ -96,6 +96,7 @@ const TXT_FILES = {
   reel2: "reel2.txt",
   Independance_day_prompts: "Independance-day-prompts.txt",
   cgi_rally_prompt: "cgi-rally-prompt.txt",
+  racing_poster: "racing-poster.txt",
 };
 
 /*
