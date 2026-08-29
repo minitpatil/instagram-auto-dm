@@ -7,6 +7,7 @@ import {
   getInstagramAccounts,
   createAutomation,
   getAutomations,
+  removeInstagramAccount,
 } from "./instagram.service";
 
 import {
@@ -40,28 +41,22 @@ const FRONTEND_URL =
   "http://localhost:5173";
 
 const GRAPH_API_VERSION =
-  process.env.GRAPH_API_VERSION || "v26.0";
+  process.env.GRAPH_API_VERSION ||
+  "v26.0";
 
 /*
 |--------------------------------------------------------------------------
 | START INSTAGRAM BUSINESS LOGIN
-|--------------------------------------------------------------------------
-|
-| IMPORTANT:
-| Browser navigation cannot automatically send the Authorization header.
-|
-| Therefore this route is authenticated and returns an OAuth URL.
-| The frontend calls this route with axios, receives the URL,
-| and then redirects the browser to Instagram.
-|
-| We create a signed short-lived state containing the SaaS user ID.
 |--------------------------------------------------------------------------
 */
 
 router.get(
   "/oauth",
   authenticateToken,
-  async (req: AuthenticatedRequest, res) => {
+  async (
+    req: AuthenticatedRequest,
+    res
+  ) => {
     try {
       if (!INSTAGRAM_APP_ID) {
         return res.status(500).json({
@@ -71,7 +66,8 @@ router.get(
         });
       }
 
-      const jwtSecret = process.env.JWT_SECRET;
+      const jwtSecret =
+        process.env.JWT_SECRET;
 
       if (!jwtSecret) {
         console.error(
@@ -88,7 +84,8 @@ router.get(
       if (!req.user?.id) {
         return res.status(401).json({
           success: false,
-          message: "Authenticated user is required",
+          message:
+            "Authenticated user is required",
         });
       }
 
@@ -101,7 +98,8 @@ router.get(
       const state = jwt.sign(
         {
           sub: req.user.id,
-          purpose: "instagram_oauth",
+          purpose:
+            "instagram_oauth",
         },
         jwtSecret,
         {
@@ -136,22 +134,36 @@ router.get(
           INSTAGRAM_REDIRECT_URI
         )}` +
         "&response_type=code" +
-        `&scope=${encodeURIComponent(scopes)}` +
-        `&state=${encodeURIComponent(state)}`;
+        `&scope=${encodeURIComponent(
+          scopes
+        )}` +
+        `&state=${encodeURIComponent(
+          state
+        )}`;
 
       console.log(
         "======================================"
       );
-      console.log("📸 INSTAGRAM OAUTH START");
-      console.log("User ID:", req.user.id);
+
+      console.log(
+        "📸 INSTAGRAM OAUTH START"
+      );
+
+      console.log(
+        "User ID:",
+        req.user.id
+      );
+
       console.log(
         "App ID:",
         INSTAGRAM_APP_ID
       );
+
       console.log(
         "Redirect URI:",
         INSTAGRAM_REDIRECT_URI
       );
+
       console.log(
         "======================================"
       );
@@ -183,7 +195,10 @@ router.get(
 
 router.get(
   "/oauth/callback",
-  async (req, res) => {
+  async (
+    req,
+    res
+  ) => {
     try {
       /*
       |--------------------------------------------------------------------------
@@ -192,17 +207,20 @@ router.get(
       */
 
       const code =
-        typeof req.query.code === "string"
+        typeof req.query.code ===
+        "string"
           ? req.query.code
           : "";
 
       const state =
-        typeof req.query.state === "string"
+        typeof req.query.state ===
+        "string"
           ? req.query.state
           : "";
 
       const oauthError =
-        typeof req.query.error === "string"
+        typeof req.query.error ===
+        "string"
           ? req.query.error
           : "";
 
@@ -255,16 +273,19 @@ router.get(
         );
       }
 
-      const jwtSecret = process.env.JWT_SECRET;
+      const jwtSecret =
+        process.env.JWT_SECRET;
 
       if (!jwtSecret) {
         console.error(
           "JWT_SECRET is not configured"
         );
 
-        return res.status(500).send(
-          "Server authentication configuration error."
-        );
+        return res
+          .status(500)
+          .send(
+            "Server authentication configuration error."
+          );
       }
 
       let oauthState: {
@@ -273,13 +294,14 @@ router.get(
       };
 
       try {
-        oauthState = jwt.verify(
-          state,
-          jwtSecret
-        ) as {
-          sub?: string;
-          purpose?: string;
-        };
+        oauthState =
+          jwt.verify(
+            state,
+            jwtSecret
+          ) as {
+            sub?: string;
+            purpose?: string;
+          };
       } catch (error) {
         console.error(
           "Invalid or expired Instagram OAuth state:",
@@ -311,9 +333,8 @@ router.get(
         );
       }
 
-      const userId = String(
-        oauthState.sub
-      );
+      const userId =
+        String(oauthState.sub);
 
       /*
       |--------------------------------------------------------------------------
@@ -329,39 +350,48 @@ router.get(
           "Instagram OAuth credentials are not configured"
         );
 
-        return res.status(500).send(
-          "Instagram OAuth credentials are not configured."
-        );
+        return res
+          .status(500)
+          .send(
+            "Instagram OAuth credentials are not configured."
+          );
       }
 
       /*
       |--------------------------------------------------------------------------
-      | EXCHANGE AUTHORIZATION CODE FOR ACCESS TOKEN
+      | EXCHANGE AUTHORIZATION CODE
       |--------------------------------------------------------------------------
       */
 
-      const tokenResponse = await fetch(
-        "https://api.instagram.com/oauth/access_token",
-        {
-          method: "POST",
+      const tokenResponse =
+        await fetch(
+          "https://api.instagram.com/oauth/access_token",
+          {
+            method: "POST",
 
-          headers: {
-            "Content-Type":
-              "application/x-www-form-urlencoded",
-          },
+            headers: {
+              "Content-Type":
+                "application/x-www-form-urlencoded",
+            },
 
-          body: new URLSearchParams({
-            client_id: INSTAGRAM_APP_ID,
-            client_secret:
-              INSTAGRAM_APP_SECRET,
-            grant_type:
-              "authorization_code",
-            redirect_uri:
-              INSTAGRAM_REDIRECT_URI,
-            code,
-          }),
-        }
-      );
+            body:
+              new URLSearchParams({
+                client_id:
+                  INSTAGRAM_APP_ID,
+
+                client_secret:
+                  INSTAGRAM_APP_SECRET,
+
+                grant_type:
+                  "authorization_code",
+
+                redirect_uri:
+                  INSTAGRAM_REDIRECT_URI,
+
+                code,
+              }),
+          }
+        );
 
       const tokenData =
         await tokenResponse.json();
@@ -386,7 +416,9 @@ router.get(
       }
 
       const accessToken =
-        tokenData.access_token;
+        String(
+          tokenData.access_token
+        );
 
       /*
       |--------------------------------------------------------------------------
@@ -428,7 +460,7 @@ router.get(
 
       /*
       |--------------------------------------------------------------------------
-      | SAVE INSTAGRAM ACCOUNT TO DATABASE
+      | SAVE INSTAGRAM ACCOUNT
       |--------------------------------------------------------------------------
       */
 
@@ -437,19 +469,26 @@ router.get(
           userId,
           {
             instagramUserId:
-              String(profileData.user_id),
+              String(
+                profileData.user_id
+              ),
 
             username:
-              String(profileData.username),
+              String(
+                profileData.username
+              ),
 
             name:
               profileData.name
-                ? String(profileData.name)
+                ? String(
+                    profileData.name
+                  )
                 : null,
 
-            accessTokenEncrypted: encryptToken(
-  String(accessToken)
-),
+            accessTokenEncrypted:
+              encryptToken(
+                accessToken
+              ),
           }
         );
 
@@ -572,8 +611,8 @@ router.get(
 | ADD INSTAGRAM ACCOUNT
 |--------------------------------------------------------------------------
 |
-| This endpoint is kept for manual/API usage.
-| OAuth now saves the account automatically.
+| Kept for manual/API usage.
+| OAuth automatically saves the account.
 |--------------------------------------------------------------------------
 */
 
@@ -640,7 +679,67 @@ router.post(
 
 /*
 |--------------------------------------------------------------------------
+| REMOVE INSTAGRAM ACCOUNT
+|--------------------------------------------------------------------------
+*/
+
+router.delete(
+  "/accounts/:accountId",
+  authenticateToken,
+  async (
+    req: AuthenticatedRequest,
+    res
+  ) => {
+    try {
+      if (!req.user?.id) {
+        return res.status(401).json({
+          success: false,
+          message:
+            "Authenticated user is required",
+        });
+      }
+
+      const accountId =
+        String(req.params.accountId || "").trim();
+
+      if (!accountId) {
+        return res.status(400).json({
+          success: false,
+          message:
+            "Instagram account ID is required",
+        });
+      }
+
+      const result =
+        await removeInstagramAccount(
+          req.user.id,
+          accountId
+        );
+
+      return res.status(200).json(result);
+    } catch (error) {
+      console.error(
+        "Remove Instagram account error:",
+        error
+      );
+
+      return res.status(404).json({
+        success: false,
+        message:
+          error instanceof Error
+            ? error.message
+            : "Failed to remove Instagram account",
+      });
+    }
+  }
+);
+/*
+|--------------------------------------------------------------------------
 | CREATE AUTOMATION
+|--------------------------------------------------------------------------
+|
+| IMPORTANT:
+| Media ID is intentionally NOT accepted from frontend.
 |--------------------------------------------------------------------------
 */
 
@@ -655,12 +754,17 @@ router.post(
       const {
         instagramAccountId,
         targetUrl,
-        mediaId,
         targetType,
         publicReply,
         dmMessage,
         fileId,
       } = req.body;
+
+      /*
+      |--------------------------------------------------------------------------
+      | REQUIRED FIELDS
+      |--------------------------------------------------------------------------
+      */
 
       if (
         !instagramAccountId ||
@@ -674,6 +778,12 @@ router.post(
         });
       }
 
+      /*
+      |--------------------------------------------------------------------------
+      | TARGET TYPE VALIDATION
+      |--------------------------------------------------------------------------
+      */
+
       if (
         targetType !== "POST" &&
         targetType !== "REEL"
@@ -685,24 +795,39 @@ router.post(
         });
       }
 
+      /*
+      |--------------------------------------------------------------------------
+      | CREATE AUTOMATION
+      |--------------------------------------------------------------------------
+      */
+
       const automation =
         await createAutomation(
           req.user!.id,
           {
             instagramAccountId,
+
             targetUrl,
-            mediaId,
+
             targetType,
-            publicReply,
-            dmMessage,
-            fileId,
+
+            publicReply:
+              publicReply || null,
+
+            dmMessage:
+              dmMessage || null,
+
+            fileId:
+              fileId || null,
           }
         );
 
       return res.status(201).json({
         success: true,
+
         message:
           "Automation created successfully",
+
         automation,
       });
     } catch (error) {
@@ -713,6 +838,7 @@ router.post(
 
       return res.status(500).json({
         success: false,
+
         message:
           error instanceof Error
             ? error.message
@@ -736,9 +862,17 @@ router.get(
     res
   ) => {
     try {
+      if (!req.user?.id) {
+        return res.status(401).json({
+          success: false,
+          message:
+            "Authenticated user is required",
+        });
+      }
+
       const automations =
         await getAutomations(
-          req.user!.id
+          req.user.id
         );
 
       return res.status(200).json({

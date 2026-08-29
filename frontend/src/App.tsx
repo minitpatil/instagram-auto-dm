@@ -5,10 +5,12 @@ import {
   Routes,
 } from "react-router-dom";
 
-
 import Login from "./pages/auth/Login";
 import Dashboard from "./pages/dashboard/Dashboard";
 import InstagramAccounts from "./pages/instagram/InstagramAccounts";
+import Automations from "./pages/automations/Automations";
+import DashboardLayout from "./components/layout/DashboardLayout";
+
 
 function Placeholder({ title }: { title: string }) {
   return (
@@ -33,12 +35,14 @@ function App() {
           path="/instagram-accounts"
           element={<InstagramAccounts />}
         />
-
-        <Route
-          path="/automations"
-          element={<Placeholder title="Automations" />}
-        />
-
+<Route
+  path="/automations"
+  element={
+    <DashboardLayout>
+      <Automations />
+    </DashboardLayout>
+  }
+/>
         <Route
           path="/files"
           element={<Placeholder title="Files" />}
