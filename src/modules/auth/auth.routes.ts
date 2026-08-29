@@ -8,6 +8,12 @@ import { prisma } from "../../lib/prisma.ts";
 
 const router = Router();
 
+/*
+|--------------------------------------------------------------------------
+| REGISTER
+|--------------------------------------------------------------------------
+*/
+
 router.post("/register", async (req, res) => {
   try {
     const result = await registerUser(req.body);
@@ -30,8 +36,41 @@ router.post("/register", async (req, res) => {
   }
 });
 
+/*
+|--------------------------------------------------------------------------
+| LOGIN
+|--------------------------------------------------------------------------
+*/
+
 router.post("/login", async (req, res) => {
-    router.get(
+  try {
+    const result = await loginUser(req.body);
+
+    return res.status(200).json({
+      success: true,
+      message: "Login successful",
+      ...result,
+    });
+  } catch (error) {
+    console.error("Login error:", error);
+
+    return res.status(401).json({
+      success: false,
+      message:
+        error instanceof Error
+          ? error.message
+          : "Login failed",
+    });
+  }
+});
+
+/*
+|--------------------------------------------------------------------------
+| CURRENT USER
+|--------------------------------------------------------------------------
+*/
+
+router.get(
   "/me",
   authenticateToken,
   async (req: AuthenticatedRequest, res) => {
@@ -78,26 +117,5 @@ router.post("/login", async (req, res) => {
     }
   }
 );
-
-  try {
-    const result = await loginUser(req.body);
-
-    return res.status(200).json({
-      success: true,
-      message: "Login successful",
-      ...result,
-    });
-  } catch (error) {
-    console.error("Login error:", error);
-
-    return res.status(401).json({
-      success: false,
-      message:
-        error instanceof Error
-          ? error.message
-          : "Login failed",
-    });
-  }
-});
 
 export default router;

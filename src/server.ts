@@ -1,5 +1,6 @@
 import "dotenv/config";
 import express from "express";
+import cors from "cors";
 
 import authRoutes from "./modules/auth/auth.routes.ts";
 import instagramRoutes from "./modules/instagram/instagram.routes.ts";
@@ -8,7 +9,17 @@ import fileRoutes from "./modules/file/file.routes.ts";
 
 
 const app = express();
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    credentials: true,
+  })
+);
 
+app.use(express.json());
+
+
+//app.use(cors());
 app.use(express.json());
 app.use("/api/files", fileRoutes);
 

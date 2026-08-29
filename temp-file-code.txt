@@ -1,0 +1,42 @@
+          console.log(
+            "❌ FILE NOT FOUND:",
+            automation.fileId
+          );
+        } else {
+          console.log("✅ FILE FOUND");
+          console.log("File ID:", file.id);
+          console.log("File Name:", file.name);
+          console.log(
+            "File MIME:",
+            file.mimeType
+          );
+
+          const publicBaseUrl =
+            process.env.PUBLIC_BASE_URL;
+
+          console.log(
+            "PUBLIC_BASE_URL:",
+            publicBaseUrl
+          );
+
+          if (publicBaseUrl) {
+            fileUrl =
+              `${publicBaseUrl.replace(
+                /\/$/,
+                ""
+              )}/api/files/public/${file.id}`;
+
+            console.log(
+              "🔗 GENERATED FILE URL:"
+            );
+            console.log(fileUrl);
+          } else {
+            console.log(
+              "❌ PUBLIC_BASE_URL missing"
+            );
+          }
+        }
+      } else {
+        console.log(
+          "⚠️ Automation has NO fileId"
+        );

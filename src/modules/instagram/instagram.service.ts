@@ -1,4 +1,5 @@
 import { prisma } from "../../lib/prisma";
+import { decryptToken } from "../../utils/encryption";
 
 const GRAPH_API_VERSION =
   process.env.GRAPH_API_VERSION || "v26.0";
@@ -125,18 +126,63 @@ export async function addInstagramAccount(
   userId: string,
   input: AddInstagramAccountInput
 ) {
-  return prisma.instagramAccount.upsert({
-    where: {
-      instagramUserId: input.instagramUserId,
-    },
-    update: {
-      username: input.username,
-      name: input.name || null,
-      accessTokenEncrypted:
-        input.accessTokenEncrypted,
-      status: "ACTIVE",
-    },
-    create: {
+  /*
+  |--------------------------------------------------------------------------
+  | CHECK IF INSTAGRAM ACCOUNT ALREADY EXISTS
+  |--------------------------------------------------------------------------
+  */
+
+  const existingAccount =
+    await prisma.instagramAccount.findUnique({
+      where: {
+        instagramUserId: input.instagramUserId,
+      },
+    });
+
+  /*
+  |--------------------------------------------------------------------------
+  | PREVENT ACCOUNT TRANSFER BETWEEN USERS
+  |--------------------------------------------------------------------------
+  */
+
+  if (
+    existingAccount &&
+    existingAccount.userId !== userId
+  ) {
+    throw new Error(
+      "This Instagram account is already connected to another user."
+    );
+  }
+
+  /*
+  |--------------------------------------------------------------------------
+  | UPDATE EXISTING ACCOUNT
+  |--------------------------------------------------------------------------
+  */
+
+  if (existingAccount) {
+    return prisma.instagramAccount.update({
+      where: {
+        id: existingAccount.id,
+      },
+      data: {
+        username: input.username,
+        name: input.name || null,
+        accessTokenEncrypted:
+          input.accessTokenEncrypted,
+        status: "ACTIVE",
+      },
+    });
+  }
+
+  /*
+  |--------------------------------------------------------------------------
+  | CREATE NEW ACCOUNT
+  |--------------------------------------------------------------------------
+  */
+
+  return prisma.instagramAccount.create({
+    data: {
       userId,
       instagramUserId: input.instagramUserId,
       username: input.username,
@@ -239,12 +285,13 @@ export async function createAutomation(
   let validFileId: string | null = null;
 
   if (input.fileId) {
-    const file = await prisma.file.findFirst({
-      where: {
-        id: input.fileId,
-        userId,
-      },
-    });
+    const file =
+      await prisma.file.findFirst({
+        where: {
+          id: input.fileId,
+          userId,
+        },
+      });
 
     if (!file) {
       throw new Error(
@@ -355,7 +402,8 @@ export async function processInstagramWebhook(
   console.log("======================================");
 
   for (const entry of body.entry || []) {
-    const instagramUserId = entry.id;
+    const instagramUserId =
+      String(entry.id || "");
 
     console.log(
       "Instagram Account ID:",
@@ -381,6 +429,7 @@ export async function processInstagramWebhook(
         "❌ Instagram account not found:",
         instagramUserId
       );
+
       continue;
     }
 
@@ -391,17 +440,22 @@ export async function processInstagramWebhook(
 
     /*
     |--------------------------------------------------------------------------
-    | ACCESS TOKEN
+    | DECRYPT ACCOUNT-SPECIFIC ACCESS TOKEN
     |--------------------------------------------------------------------------
     */
 
-    const accessToken =
-      process.env.INSTAGRAM_ACCESS_TOKEN;
+    let accessToken: string;
 
-    if (!accessToken) {
-      console.log(
-        "❌ INSTAGRAM_ACCESS_TOKEN missing"
+    try {
+      accessToken = decryptToken(
+        account.accessTokenEncrypted
       );
+    } catch (error) {
+      console.error(
+        "❌ Failed to decrypt Instagram access token:",
+        error
+      );
+
       continue;
     }
 
@@ -416,13 +470,22 @@ export async function processInstagramWebhook(
         continue;
       }
 
-      const value = change.value;
+      const value = change.value || {};
 
-      const mediaId = value.media?.id;
-      const commentId = value.id;
-      const commentText = value.text;
-      const username = value.from?.username;
-      const commenterId = value.from?.id;
+      const mediaId =
+        value.media?.id;
+
+      const commentId =
+        value.id;
+
+      const commentText =
+        value.text;
+
+      const username =
+        value.from?.username;
+
+      const commenterId =
+        value.from?.id;
 
       /*
       |--------------------------------------------------------------------------
@@ -430,10 +493,14 @@ export async function processInstagramWebhook(
       |--------------------------------------------------------------------------
       */
 
-      if (commenterId === instagramUserId) {
+      if (
+        commenterId &&
+        String(commenterId) === instagramUserId
+      ) {
         console.log(
           "⏭️ Ignoring own Instagram reply"
         );
+
         continue;
       }
 
@@ -447,6 +514,7 @@ export async function processInstagramWebhook(
         console.log(
           "❌ Media ID or Comment ID missing"
         );
+
         continue;
       }
 
@@ -472,8 +540,8 @@ export async function processInstagramWebhook(
             status: "ACTIVE",
           },
           orderBy: {
-      createdAt: "desc",
-    },
+            createdAt: "desc",
+          },
         });
 
       if (!automation) {
@@ -481,6 +549,7 @@ export async function processInstagramWebhook(
           "❌ NO AUTOMATION FOUND:",
           mediaId
         );
+
         continue;
       }
 
@@ -493,6 +562,10 @@ export async function processInstagramWebhook(
       console.log(
         "User ID:",
         automation.userId
+      );
+      console.log(
+        "Instagram Account ID:",
+        automation.instagramAccountId
       );
       console.log(
         "File ID:",
@@ -516,7 +589,8 @@ export async function processInstagramWebhook(
       const existingLog =
         await prisma.automationLog.findFirst({
           where: {
-            automationId: automation.id,
+            automationId:
+              automation.id,
             commentId,
           },
         });
@@ -526,21 +600,25 @@ export async function processInstagramWebhook(
           "⏭️ Automation already processed comment:",
           commentId
         );
+
         continue;
       }
 
       /*
       |--------------------------------------------------------------------------
-      | CREATE LOG
+      | CREATE AUTOMATION LOG
       |--------------------------------------------------------------------------
       */
 
       const log =
         await prisma.automationLog.create({
           data: {
-            automationId: automation.id,
-            eventType: "COMMENT_RECEIVED",
-            commenterUsername: username,
+            automationId:
+              automation.id,
+            eventType:
+              "COMMENT_RECEIVED",
+            commenterUsername:
+              username,
             commentId,
             success: false,
           },
@@ -548,7 +626,8 @@ export async function processInstagramWebhook(
 
       let publicReplySent = false;
       let dmSent = false;
-      let lastError: string | null = null;
+      let lastError:
+        string | null = null;
 
       /*
       |--------------------------------------------------------------------------
@@ -592,7 +671,8 @@ export async function processInstagramWebhook(
       |--------------------------------------------------------------------------
       */
 
-      let fileUrl: string | null = null;
+      let fileUrl:
+        string | null = null;
 
       console.log("======================================");
       console.log("📎 FILE PROCESSING");
@@ -610,7 +690,8 @@ export async function processInstagramWebhook(
           await prisma.file.findFirst({
             where: {
               id: automation.fileId,
-              userId: automation.userId,
+              userId:
+                automation.userId,
             },
           });
 
@@ -620,9 +701,20 @@ export async function processInstagramWebhook(
             automation.fileId
           );
         } else {
-          console.log("✅ FILE FOUND");
-          console.log("File ID:", file.id);
-          console.log("File Name:", file.name);
+          console.log(
+            "✅ FILE FOUND"
+          );
+
+          console.log(
+            "File ID:",
+            file.id
+          );
+
+          console.log(
+            "File Name:",
+            file.name
+          );
+
           console.log(
             "File MIME:",
             file.mimeType
@@ -646,6 +738,7 @@ export async function processInstagramWebhook(
             console.log(
               "🔗 GENERATED FILE URL:"
             );
+
             console.log(fileUrl);
           } else {
             console.log(
@@ -659,7 +752,9 @@ export async function processInstagramWebhook(
         );
       }
 
-      console.log("======================================");
+      console.log(
+        "======================================"
+      );
 
       /*
       |--------------------------------------------------------------------------
@@ -667,22 +762,28 @@ export async function processInstagramWebhook(
       |--------------------------------------------------------------------------
       */
 
-      if (automation.dmMessage || fileUrl) {
+      if (
+        automation.dmMessage ||
+        fileUrl
+      ) {
         try {
           console.log(
             "📩 Sending private DM..."
           );
 
           let dmText =
-            automation.dmMessage || "";
+            automation.dmMessage ||
+            "";
 
           if (fileUrl) {
-            dmText += `\n\n📎 ${fileUrl}`;
+            dmText +=
+              `\n\n📎 ${fileUrl}`;
           }
 
           console.log(
             "📨 FINAL DM TEXT:"
           );
+
           console.log(dmText);
 
           await sendPrivateReply(
@@ -723,7 +824,8 @@ export async function processInstagramWebhook(
       const success =
         (!automation.publicReply ||
           publicReplySent) &&
-        (!automation.dmMessage && !fileUrl
+        (!automation.dmMessage &&
+        !fileUrl
           ? true
           : dmSent);
 
@@ -735,12 +837,17 @@ export async function processInstagramWebhook(
           eventType: success
             ? "AUTOMATION_COMPLETED"
             : "AUTOMATION_FAILED",
+
           success,
-          errorMessage: lastError,
+
+          errorMessage:
+            lastError,
         },
       });
 
-      console.log("======================================");
+      console.log(
+        "======================================"
+      );
 
       console.log(
         success
@@ -748,7 +855,9 @@ export async function processInstagramWebhook(
           : "❌ AUTOMATION FAILED"
       );
 
-      console.log("======================================");
+      console.log(
+        "======================================"
+      );
     }
   }
 
